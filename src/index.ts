@@ -86,6 +86,16 @@ app.get('/', async (_, res) => {
   res.status(200).send({ message: "Hello, World!" });
 });
 
+app.get('/on', async (_, res) => {
+  try {
+    // Check MongoDB connection
+    await app.locals.userCollection.stats();
+    res.status(200).json({ status: 'healthy', database: 'connected' });
+  } catch (err) {
+    res.status(500).json({ status: 'unhealthy', database: 'disconnected' });
+  }
+});
+
 
 // III. Boot up the app:
 
