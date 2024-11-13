@@ -25,6 +25,7 @@ const mongoClientOptions = {
     password: env.mongo_password,
   },
 }
+let client: MongoClient;
 
 
 //
@@ -98,18 +99,50 @@ app.get('/on', async (_, res) => {
 
 
 // III. Boot up the app:
-
-app.listen(8000, async () => {
-  try {
-    const client = await MongoClient.connect(mongoUri, mongoClientOptions)
-    const db = client.db(dbName);
-    app.locals.orderCollection = db.collection('orders');
-    app.locals.userCollection = db.collection('users');
-    console.log('Connected to MongoDB on: ', mongoUri)
-  } catch (err) {
-    console.error('Connection to MongoDB failed: ', err)
+// Improved MongoDB connection handling
+async function connectToMongo(retries = 5, delay = 5000): Promise<void> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      client = await MongoClient.connect(mongoUri);
+      app.locals.orderCollection = client.db(dbName).collection('orders');
+      app.locals.userCollection = client.db(dbName).collection('users');
+      console.log('Successfully connected to MongoDB on:', env.mongo_host);
+      return;
+    } catch (err) {
+      console.error(`MongoDB connection attempt ${i + 1}/${retries} failed:`, err);
+      if (i < retries - 1) {
+        console.log(`Retrying in ${delay/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
+  throw new Error('Failed to connect to MongoDB after multiple attempts');
+}
 
-  console.log('App platform demo app - Backend listening on port 8000!');
-  console.log(`CORS config: configured to respond to a frontend hosted on ${env.frontend_url}`);
+// Graceful shutdown handling
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM signal. Closing connections...');
+  try {
+    if (client) {
+      await client.close();
+      console.log('MongoDB connection closed');
+    }
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during shutdown:', err);
+    process.exit(1);
+  }
+});
+
+// Start the server
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, async () => {
+  try {
+    await connectToMongo();
+    console.log(`App listening on port ${PORT}`);
+    console.log(`CORS config: configured to respond to a frontend hosted on ${env.frontend_url}`);
+  } catch (err) {
+    console.error('Failed to start application:', err);
+    process.exit(1);
+  }
 });
