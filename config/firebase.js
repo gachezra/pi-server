@@ -2,7 +2,6 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { getAuth } = require('firebase-admin/auth');
 const { getDatabase } = require('firebase-admin/database');
 const admin = require("firebase-admin");
-const Buffer = require('buffer');
 require('dotenv').config();
 const base64Key = process.env.GOOGLE_SERVICE_KEY;
 
