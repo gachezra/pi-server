@@ -1,4 +1,4 @@
-const { db, auth } = require('../config/firebase');
+const { rt, auth } = require('../config/firebase');
 
 const firebaseSession = async (req, res, next) => {
   try {
@@ -12,7 +12,7 @@ const firebaseSession = async (req, res, next) => {
     const decodedToken = await auth.verifyIdToken(token);
     
     // Get or create session in Firebase
-    const sessionRef = db.ref(`sessions/${decodedToken.uid}`);
+    const sessionRef = rt.ref(`sessions/${decodedToken.uid}`);
     const sessionSnapshot = await sessionRef.get();
     
     if (sessionSnapshot.exists()) {
@@ -40,7 +40,7 @@ const firebaseSession = async (req, res, next) => {
 
 // Session cleanup utility
 const cleanupSessions = async () => {
-  const sessionsRef = db.ref('sessions');
+  const sessionsRef = rt.ref('sessions');
   const snapshot = await sessionsRef.get();
   const now = new Date();
   
