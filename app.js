@@ -1,35 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const session = require('express-session');
-const RedisStore = require('connect-redis').default;
-const { createClient } = require('redis');
 const fs = require('fs');
 const path = require('path');
-const { db, auth } = require('./config/firebase');
+const { db } = require('./config/firebase');
 const errorHandler = require('./middleware/errorHandler');
 require('dotenv').config();
-
-// Initialize Redis client
-const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
-  legacyMode: false
-});
-
-// Redis error handling
-redisClient.on('error', (err) => {
-  console.error('Redis Client Error:', err);
-});
-
-// Redis connection handling
-redisClient.on('connect', () => {
-  console.log('Connected to Redis successfully');
-});
-
-// Connect to Redis
-(async () => {
-  await redisClient.connect().catch(console.error);
-})();
 
 const app = express();
 
@@ -58,40 +34,26 @@ app.use(cors({
   credentials: true
 }));
 
-// Session configuration with Redis
-app.use(session({
-  store: new RedisStore({ 
-    client: redisClient,
-    prefix: 'session:',
-    ttl: 86400 // 24 hours in seconds
-  }),
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
-
 // Routes
 app.use('/auth', require('./routes/auth'));
 app.use('/payments', require('./routes/payments'));
 
+app.get('/', async (req, res) => {
+  res.json({
+    message: 'Welcome to Pi-Server'
+  });
+});
+
 // Health check endpoint
-app.get('/health', async (req, res) => {
+app.get('/on', async (req, res) => {
   try {
+    // console.log(process.env.API_KEY, process.env.AUTH_DOMAIN, process.env.PROJECT_ID, process.env.STORAGE_BUCKET, process.env.MSG_SNDR_ID, process.env.APP_ID, process.env.MEASUREMENT_ID)
     // Check Firebase connection
     await db.collection('users').limit(1).get();
-    
-    // Check Redis connection
-    const isRedisConnected = redisClient.isOpen;
     
     res.json({
       status: 'healthy',
       firebase: 'connected',
-      redis: isRedisConnected ? 'connected' : 'disconnected'
     });
   } catch (error) {
     res.status(500).json({
@@ -109,9 +71,6 @@ const gracefulShutdown = async () => {
   console.log('Received shutdown signal. Closing connections...');
   
   try {
-    // Close Redis connection
-    await redisClient.quit();
-    console.log('Redis connection closed');
     
     // Firebase Admin SDK doesn't require explicit cleanup
     process.exit(0);

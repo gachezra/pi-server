@@ -1,0 +1,5 @@
+::1 - - [14/Nov/2024:10:29:35 +0000] "GET / HTTP/1.1" 404 139 "https://github.com/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+::1 - - [14/Nov/2024:10:30:06 +0000] "GET /on HTTP/1.1" 500 165 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+::1 - - [14/Nov/2024:10:33:15 +0000] "GET /on HTTP/1.1" 500 165 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+::1 - - [14/Nov/2024:10:35:34 +0000] "GET /on HTTP/1.1" 500 165 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+::1 - - [14/Nov/2024:10:36:01 +0000] "GET /on HTTP/1.1" 500 165 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"

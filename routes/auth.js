@@ -32,11 +32,7 @@ router.post('/signin', async (req, res) => {
       lastLogin: new Date().toISOString()
     }, { merge: true });
     
-    // Create custom token for Firebase authentication
     const firebaseToken = await auth.createCustomToken(userRecord.uid);
-
-    // Store user info in session
-    req.session.user = userRecord;
     
     res.json({ token: firebaseToken });
   } catch (error) {
@@ -44,13 +40,17 @@ router.post('/signin', async (req, res) => {
   }
 });
 
-router.post('/signout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to sign out' });
+// Update the signout route
+router.post('/signout', async (req, res) => {
+  try {
+    if (req.sessionRef) {
+      await req.sessionRef.remove();
     }
     res.json({ message: 'Successfully signed out' });
-  });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sign out' });
+  }
 });
+  
 
 module.exports = router;
